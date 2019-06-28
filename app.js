@@ -23,7 +23,18 @@ let budgetCtrl = (function () {
         total: {
             exp: 0,
             inc: 0
-        }
+        },
+        budget: 0,
+        percent: -1
+    };
+
+    calculateTotal = function (type) {
+        let array, sum = 0;
+        array = data;
+        array.allItems[type].forEach(function (item) {
+            sum += item.value;
+        })
+        array.total[type] = sum;
     }
 
     return {
@@ -54,6 +65,39 @@ let budgetCtrl = (function () {
 
         toStringObj: function () {
             console.log(data);
+        },
+
+        returnData() {
+            return data;
+        },
+
+        calculateSum: function () {
+            //calculate total income and the expenses
+            calculateTotal('exp');
+            calculateTotal('inc');
+
+            //calculate the budget: income - expenses
+
+            data.budget = data["total"]["inc"] - data["total"]["exp"];
+
+            //calculate the percentage: so expenses/income rounded down.
+            //If expense is added first, percentage is Infinity, since wea re dividing zero.
+            //If our total income is > 0, we can safely divide,
+            //Otherwise, we want the percentage to remain -1.
+            if (data['total']['inc'] > 0) {
+                data.percent = Math.round((data["total"]["exp"] / data["total"]["inc"]) * 100);
+            } else {
+                data.percent = -1;
+            }
+        },
+
+        getBudget: function () {
+            return {
+                domINC: data['total']['inc'],
+                domEXP: data['total']['exp'],
+                domPercent: data.percent,
+                domBudget: data.budget
+            }
         }
     }
 
@@ -138,12 +182,20 @@ let uiCtrl = (function () {
 })();
 
 
-let update = function () {
-    //4. Calc the budget amount.
-    //5. Display budget in the UI.
-}
-
 let linkCtrl = (function (budget, ui) {
+
+
+    let update = function () {
+        //4. Calc the budget amount.
+        budget.calculateSum();
+
+        let domBudget = budget.getBudget();
+        console.log(domBudget);
+        //5. Display budget in the UI.
+
+
+    }
+
 
     let addItem = function () {
         let input, newItem;
@@ -157,6 +209,7 @@ let linkCtrl = (function (budget, ui) {
             //3. Add item to UI
             ui.addItemToUI(newItem, input.type);
             ui.clearFields();
+            update();
         }
 
         //4. Calc the budget amount.
