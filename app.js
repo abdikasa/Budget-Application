@@ -116,15 +116,29 @@ let uiCtrl = (function () {
 
             //Insert HTML into the DOM 
             document.querySelector(which).insertAdjacentHTML('beforeend', newHTML);
+        },
+
+        //Like css, use commas to seperate DOM elements 
+        clearFields: function () {
+            let fields, fieldArr;
+
+            //Target the description element and the amount field.
+            fields = document.querySelectorAll(DOMstrings.inputDesc + ', ' + DOMstrings.inputAmt);
+
+            //Convert this array-like object to an actual array object
+            //Array.from() is slow.
+            fieldArr = Array.prototype.slice.call(fields);
+            fieldArr.forEach(function (item) {
+                item.value = "";
+            })
+            //Returns focus to the description input tag.
+            fieldArr[0].focus();
         }
     }
 })();
 
 
 let linkCtrl = (function (budget, ui) {
-
-    //gets the stored strings from the created object in the UI controller.
-    let uiStrings = ui.getDOMStrings();
 
     let addItem = function () {
         let input, newItem;
@@ -137,7 +151,7 @@ let linkCtrl = (function (budget, ui) {
 
         //3. Add item to UI
         ui.addItemToUI(newItem, input.type);
-
+        ui.clearFields();
         //4. Calc the budget amount.
         //5. Display budget in the UI.
     }
@@ -148,13 +162,17 @@ let linkCtrl = (function (budget, ui) {
     //Added listener for enter button.
 
     let runEvents = function () {
-        document.querySelector(uiStrings.addBtn).addEventListener('click', addItem)
-        document.querySelector(uiStrings.addBtn).addEventListener('keypress', function () {
-            //Check for enter key pressed
-            if (event.which === 13 || event.keyCode === 13) {
+        //gets the stored strings from the created object in the UI controller.
+        const uiStrings = ui.getDOMStrings();
+
+        document.querySelector(uiStrings.addBtn).addEventListener('click', addItem);
+
+        document.addEventListener('keyup', function (event) {
+            event.preventDefault();
+            if (event.keyCode === 13) {
                 addItem();
             }
-        })
+        });
     }
 
 
