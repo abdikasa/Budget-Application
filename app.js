@@ -88,7 +88,7 @@ let uiCtrl = (function () {
             return {
                 type: document.querySelector(DOMstrings.inputType).value,
                 desc: document.querySelector(DOMstrings.inputDesc).value,
-                amt: document.querySelector(DOMstrings.inputAmt).value
+                amt: parseFloat(document.querySelector(DOMstrings.inputAmt).value)
             }
         },
 
@@ -138,6 +138,11 @@ let uiCtrl = (function () {
 })();
 
 
+let update = function () {
+    //4. Calc the budget amount.
+    //5. Display budget in the UI.
+}
+
 let linkCtrl = (function (budget, ui) {
 
     let addItem = function () {
@@ -146,15 +151,18 @@ let linkCtrl = (function (budget, ui) {
         //1. Get the input data
         input = ui.getUserInput();
 
-        //2. Add item to budgetCtrl
-        newItem = budget.addItem(input.type, input.desc, input.amt);
+        if (input.desc.length !== 0 && !isNaN(input.amt) && input.amt > 0) {
+            //2. Add item to budgetCtrl
+            newItem = budget.addItem(input.type, input.desc, input.amt);
+            //3. Add item to UI
+            ui.addItemToUI(newItem, input.type);
+            ui.clearFields();
+        }
 
-        //3. Add item to UI
-        ui.addItemToUI(newItem, input.type);
-        ui.clearFields();
         //4. Calc the budget amount.
         //5. Display budget in the UI.
     }
+
 
 
     //Store DOM Listeners Here
