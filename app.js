@@ -120,8 +120,11 @@ let uiCtrl = (function () {
         inputAmt: '.add__value',
         addBtn: '.add__btn',
         incList: '.income__list',
-        expList: '.expenses__list'
-
+        expList: '.expenses__list',
+        budgetLbl: '.budget__value',
+        incomeLbl: '.budget__income--value',
+        expenseLbl: '.budget__expenses--value',
+        percentLbl: '.budget__expenses--percentage'
     }
 
     //Here's  something to remember
@@ -177,6 +180,18 @@ let uiCtrl = (function () {
             })
             //Returns focus to the description input tag.
             fieldArr[0].focus();
+        },
+
+        displayBudget: function (obj) {
+            document.querySelector(DOMstrings.budgetLbl).textContent = obj.domBudget;
+            document.querySelector(DOMstrings.incomeLbl).textContent = obj.domINC;
+            document.querySelector(DOMstrings.expenseLbl).textContent = obj.domEXP;
+
+            if (obj.domPercent > 0) {
+                document.querySelector(DOMstrings.percentLbl).textContent = obj.domPercent + "%";
+            } else {
+                document.querySelector(DOMstrings.percentLbl).textContent = '----';
+            }
         }
     }
 })();
@@ -192,7 +207,7 @@ let linkCtrl = (function (budget, ui) {
         let domBudget = budget.getBudget();
         console.log(domBudget);
         //5. Display budget in the UI.
-
+        ui.displayBudget(domBudget);
 
     }
 
@@ -244,6 +259,12 @@ let linkCtrl = (function (budget, ui) {
         init: function () {
             console.log('Start App')
             runEvents();
+            ui.displayBudget({
+                budget: 0,
+                inc: 0,
+                exp: 0,
+                percent: -1
+            })
         }
     }
 })(budgetCtrl, uiCtrl);
