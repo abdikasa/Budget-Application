@@ -98,11 +98,17 @@ let budgetCtrl = (function () {
                 domPercent: data.percent,
                 domBudget: data.budget
             }
+        },
+
+        deleteData: function (type, id) {
+            for (let i = 0; i < data.allItems[type].length; i++) {
+                if (data.allItems[type][i].id === Number(id)) {
+                    data.allItems[type].splice(i, 1);
+                    break;
+                }
+            }
         }
     }
-
-
-
 })();
 
 
@@ -124,7 +130,8 @@ let uiCtrl = (function () {
         budgetLbl: '.budget__value',
         incomeLbl: '.budget__income--value',
         expenseLbl: '.budget__expenses--value',
-        percentLbl: '.budget__expenses--percentage'
+        percentLbl: '.budget__expenses--percentage',
+        parent: '.container'
     }
 
     //Here's  something to remember
@@ -150,10 +157,10 @@ let uiCtrl = (function () {
 
             if (type === 'inc') {
                 which = DOMstrings.incList;
-                html = '<div class="item clearfix" id="income-%id%"><div class="item__description">%desc%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+                html = '<div class="item clearfix" id="inc-%id%"><div class="item__description">%desc%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
             } else if (type === 'exp') {
                 which = DOMstrings.expList;
-                html = '<div class="item clearfix" id="expense-%id%"><div class="item__description">%desc%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__percentage">10%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
+                html = '<div class="item clearfix" id="exp-%id%"><div class="item__description">%desc%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__percentage">10%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
             }
 
             //Replace placeholder with data
@@ -163,6 +170,12 @@ let uiCtrl = (function () {
 
             //Insert HTML into the DOM 
             document.querySelector(which).insertAdjacentHTML('beforeend', newHTML);
+        },
+
+        deleteItemFromUI: function (e) {
+            if (e.target.parentElement.classList.contains("item__delete--btn")) {
+                e.target.parentElement.parentElement.parentElement.parentElement.remove();
+            }
         },
 
         //Like css, use commas to seperate DOM elements 
@@ -190,7 +203,7 @@ let uiCtrl = (function () {
             if (obj.domPercent > 0) {
                 document.querySelector(DOMstrings.percentLbl).textContent = obj.domPercent + "%";
             } else {
-                document.querySelector(DOMstrings.percentLbl).textContent = '----';
+                document.querySelector(DOMstrings.percentLbl).textContent = '---';
             }
         }
     }
@@ -226,9 +239,29 @@ let linkCtrl = (function (budget, ui) {
             ui.clearFields();
             update();
         }
+    }
 
-        //4. Calc the budget amount.
-        //5. Display budget in the UI.
+    let deleteItem = function (e) {
+        //console.log(e.target.parentElement.parentElement.parentElement.parentElement);
+        let type, id, splitId, idNum;
+        id = e.target.parentNode.parentNode.parentNode.parentNode.id;
+
+        if (id) {
+            //split name from number
+            //creates an array separating the indentifier.
+            splitId = id.split('-');
+            type = splitId[0];
+            idNum = splitId[1];
+
+            //1. Delete item from data structure
+            budget.deleteData(type, idNum);
+
+            //2. Delete From UI
+            ui.deleteItemFromUI(e)
+
+            //3.Update 
+            update();
+        }
     }
 
 
@@ -249,6 +282,8 @@ let linkCtrl = (function (budget, ui) {
                 addItem();
             }
         });
+
+        document.querySelector(ui.getDOMStrings().parent).addEventListener("click", deleteItem);
     }
 
 
