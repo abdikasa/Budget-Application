@@ -162,7 +162,8 @@ let uiCtrl = (function () {
         percentLbl: '.budget__expenses--percentage',
         parent: '.container',
         itemPercent: '.item__percentage',
-        dateLbl: '.budget__title--month'
+        dateLbl: '.budget__title--month',
+        add_container: '.add__container'
     }
 
     //Here's  something to remember
@@ -283,11 +284,19 @@ let uiCtrl = (function () {
             //Creates a new date object
             now = new Date();
 
-            months = ['January','February','March','April','May','June','July','August','September','October','November','December']
+            months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
             month = now.getMonth(); //Gets the month index
             year = now.getFullYear(); //return the year
-            document.querySelector(DOMstrings.dateLbl).textContent = months[month] + ' ' + year; 
+            document.querySelector(DOMstrings.dateLbl).textContent = months[month] + ' ' + year;
+        },
+
+        changeColor: function () {
+            let nodes = document.querySelectorAll(DOMstrings.inputType + ',' + DOMstrings.inputDesc + ',' + DOMstrings.inputAmt);
+            let array = Array.prototype.slice.call(nodes);
+            array.forEach(function (item) {
+                item.classList.toggle('red-focus')
+            })
         }
     }
 })();
@@ -380,6 +389,8 @@ let linkCtrl = (function (budget, ui) {
         });
 
         document.querySelector(ui.getDOMStrings().parent).addEventListener("click", deleteItem);
+
+        document.querySelector(ui.getDOMStrings().add_container).addEventListener("change", ui.changeColor);
     }
 
 
