@@ -3,10 +3,26 @@
 //Budget Controller
 let budgetCtrl = (function () {
 
-    let Expense = function (desc, value, id) {
+    let Expense = function (desc, value, id, percentage) {
         this.desc = desc;
         this.value = value;
         this.id = id;
+
+        //will not be defined till later, souse -1.
+        this.percentage = -1;
+    }
+
+    Expense.prototype.calculatePercentages = function (income) {
+        //Formula is taking each object percentage property and dividing it by the total income.
+        if (income > 0) {
+            this.percentage = Math.round((this.value / income) * 100);
+        } else {
+            this.percentage = -1;
+        }
+    }
+
+    Expense.prototype.getPercent = function () {
+        return this.percentage;
     }
 
     let Income = function (desc, value, id) {
@@ -18,7 +34,7 @@ let budgetCtrl = (function () {
     const data = {
         allItems: {
             exp: [],
-            inc: []
+            inc: [],
         },
         total: {
             exp: 0,
@@ -107,6 +123,19 @@ let budgetCtrl = (function () {
                     break;
                 }
             }
+        },
+
+        calculatePercentages: function () {
+            data.allItems["exp"].forEach(function (item) {
+                item.calculatePercentages(data.total["inc"]);
+            })
+        },
+
+        getPercent: function () {
+            let allPercents = data.allItems["exp"].map(function (item) {
+                return item.getPercent();
+            })
+            return allPercents;
         }
     }
 })();
@@ -131,11 +160,30 @@ let uiCtrl = (function () {
         incomeLbl: '.budget__income--value',
         expenseLbl: '.budget__expenses--value',
         percentLbl: '.budget__expenses--percentage',
-        parent: '.container'
+        parent: '.container',
+        itemPercent: '.item__percentage'
     }
 
     //Here's  something to remember
     //Here is an example of returning an object that contains a method, inside thid method, it  returns a function object that returns the DOMString object aboveand stores them as properties.
+
+    //We want to  format a number, the 2nd paramter determiens whether tw prepend the + or - sign.
+    let formatValues = function (num, type) {
+        let numSplit, int, dec;
+        num = Math.abs(num);
+        num = num.toFixed(2);
+        numSplit = num.split(".");
+        int = numSplit[0];
+
+        if (int.length > 3) {
+            int = int.substr(0, int.length - 3) + "," + int.substr(int.length - 3, int.length);
+        }
+
+        dec = numSplit[1];
+
+        return (type === 'exp' ? '-' : '+') + ' $' + int + '.' + dec;
+    }
+
 
     return {
         getUserInput: function () {
@@ -166,7 +214,7 @@ let uiCtrl = (function () {
             //Replace placeholder with data
             newHTML = html.replace("%id%", obj.id)
             newHTML = newHTML.replace("%desc%", obj.desc)
-            newHTML = newHTML.replace("%value%", obj.value)
+            newHTML = newHTML.replace("%value%", formatValues(obj.value))
 
             //Insert HTML into the DOM 
             document.querySelector(which).insertAdjacentHTML('beforeend', newHTML);
@@ -196,22 +244,42 @@ let uiCtrl = (function () {
         },
 
         displayBudget: function (obj) {
-            document.querySelector(DOMstrings.budgetLbl).textContent = obj.domBudget;
-            document.querySelector(DOMstrings.incomeLbl).textContent = obj.domINC;
-            document.querySelector(DOMstrings.expenseLbl).textContent = obj.domEXP;
+            let type;
+            obj.domBudget > 0 ? type = 'inc' : type = 'exp';
+
+            document.querySelector(DOMstrings.budgetLbl).textContent = formatValues(obj.domBudget, type);
+
+            document.querySelector(DOMstrings.incomeLbl).textContent = formatValues(obj.domINC, 'inc');
+            document.querySelector(DOMstrings.expenseLbl).textContent = formatValues(obj.domEXP, 'exp');
 
             if (obj.domPercent > 0) {
                 document.querySelector(DOMstrings.percentLbl).textContent = obj.domPercent + "%";
             } else {
                 document.querySelector(DOMstrings.percentLbl).textContent = '---';
             }
+        },
+
+        displayPercentages: function (percentages) {
+            let domPCT = document.querySelectorAll(DOMstrings.itemPercent);
+
+            let nodeForEach = function (list, callback) {
+                for (let i = 0; i < list.length; i++) {
+                    callback(list[i], i);
+                }
+            }
+            nodeForEach(domPCT, function (curr, index) {
+                if (percentages[index] > 0) {
+                    curr.textContent = percentages[index];
+                } else {
+                    curr.textContent = "---"
+                }
+            })
         }
     }
 })();
 
 
 let linkCtrl = (function (budget, ui) {
-
 
     let update = function () {
         //4. Calc the budget amount.
@@ -238,6 +306,7 @@ let linkCtrl = (function (budget, ui) {
             ui.addItemToUI(newItem, input.type);
             ui.clearFields();
             update();
+            updatePercents();
         }
     }
 
@@ -261,7 +330,20 @@ let linkCtrl = (function (budget, ui) {
 
             //3.Update 
             update();
+            updatePercents();
         }
+    }
+
+    let updatePercents = function () {
+        //Calculate percentages
+        budget.calculatePercentages();
+
+        //Read percenrages
+        let percentages = budget.getPercent();
+
+        //show
+        console.log(percentages);
+        ui.displayPercentages(percentages);
     }
 
 
@@ -295,10 +377,10 @@ let linkCtrl = (function (budget, ui) {
             console.log('Start App')
             runEvents();
             ui.displayBudget({
-                budget: 0,
-                inc: 0,
-                exp: 0,
-                percent: -1
+                domPercent: -1,
+                domINC: 0,
+                domBudget: 0,
+                domEXP: 0
             })
         }
     }
