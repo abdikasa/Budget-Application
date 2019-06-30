@@ -161,7 +161,8 @@ let uiCtrl = (function () {
         expenseLbl: '.budget__expenses--value',
         percentLbl: '.budget__expenses--percentage',
         parent: '.container',
-        itemPercent: '.item__percentage'
+        itemPercent: '.item__percentage',
+        dateLbl: '.budget__title--month'
     }
 
     //Here's  something to remember
@@ -274,6 +275,19 @@ let uiCtrl = (function () {
                     curr.textContent = "---"
                 }
             })
+        },
+
+        displayTheMonth: function () {
+            let now, month, year, months;
+
+            //Creates a new date object
+            now = new Date();
+
+            months = ['January','February','March','April','May','June','July','August','September','October','November','December']
+
+            month = now.getMonth(); //Gets the month index
+            year = now.getFullYear(); //return the year
+            document.querySelector(DOMstrings.dateLbl).textContent = months[month] + ' ' + year; 
         }
     }
 })();
@@ -376,6 +390,7 @@ let linkCtrl = (function (budget, ui) {
         init: function () {
             console.log('Start App')
             runEvents();
+            ui.displayTheMonth();
             ui.displayBudget({
                 domPercent: -1,
                 domINC: 0,
